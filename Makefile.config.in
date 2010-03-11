@@ -1,0 +1,19 @@
+# name of Appengine application <appname>.appspot.com
+APPENGINE_NAME ?= foo
+
+# root path to AppEngine SDK
+APPENGINE_SDK ?=
+APPENGINE_VERSION ?= 1.3.1
+
+# Paths or URIs to the Cadmium JAR files
+# If a path is not specified a pre-built version will be downloaded
+# XXX note: a small patch is currently needed to Cadmium to
+# disable thread spawning, so you have to do a custom build
+PATH_ocamlrun ?= `pwd`/dist/ocamlrun.jar
+PATH_ocamlrun_servlet ?= `pwd`/dist/ocamlrun-servlet.jar
+
+# shouldnt have to change anything below here
+
+PATH_appengine ?= $(APPENGINE_SDK)/lib/user/appengine-api-1.0-sdk-$(APPENGINE_VERSION).jar
+URI_ocamlrun ?= http://cadmium.x9c.fr/distrib/ocamlrun.jar
+URI_ocamlrun-servlet ?= http://cadmium.x9c.fr/distrib/ocamlrun-servlet.jar
