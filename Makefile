@@ -19,7 +19,7 @@ runsdk:
 	$(APPENGINE_SDK_BIN) appengineml.war.ae
 
 runlive:
-	$(APPENGINE_APPCFG_BIN) update appengineml.war.ae
+	$(APPENGINE_LIVE_BIN) update appengineml.war.ae
 
 %.war: $(SOURCES:%.ml=%.cmj)
 	ocamljava $(OCAMLBCFLAGS) -o $@ -standalone \
