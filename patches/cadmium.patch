@@ -1,0 +1,35 @@
+diff -rN -u old-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/AbstractNativeRunner.java new-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/AbstractNativeRunner.java
+--- old-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/AbstractNativeRunner.java	2010-03-11 21:56:46.000000000 +0000
++++ new-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/AbstractNativeRunner.java	2010-03-11 21:56:46.000000000 +0000
+@@ -582,17 +582,7 @@
+     public final void execute() {
+         this.context.setMainCodeRunner(this);
+         setup(null);
+-        final CadmiumThread thread =
+-            new CadmiumThread(this.context.getThreadGroup(), this);
+-        this.context.setMainThread(thread);
+-        thread.start();
+-        while (thread.isAlive()) {
+-            try {
+-                thread.join();
+-            } catch (final InterruptedException ie) {
+-                return;
+-            } // end try/catch
+-        } // end while
++        this.run();
+         Signals.unregisterContext(this.context);
+         this.context.clearSignals();
+         if ((this.exception != null)
+diff -rN -u old-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/Context.java new-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/Context.java
+--- old-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/Context.java	2010-03-11 21:56:46.000000000 +0000
++++ new-cadmium.x9c.fr/src/fr/x9c/cadmium/kernel/Context.java	2010-03-11 21:56:46.000000000 +0000
+@@ -293,8 +293,7 @@
+         this.file = p.getFile() != null ? p.getFile() : Context.NO_FILE;
+         this.mainCodeRunner = null;
+         this.mainThread = null;
+-        this.threadGroup =
+-            new ThreadGroup(CadmiumThread.getNextThreadGroupName(isNative));
++        this.threadGroup = null;
+         this.additThreads = new HashSet<Thread>();
+         this.atoms = new Value[Context.NB_ATOMS];
+         for (int i = 0; i < Context.NB_ATOMS; i++) {
