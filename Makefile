@@ -1,56 +1,37 @@
+ROOTDIR=$(shell pwd)
+OCAMLMAKEFILE=OCamlMakefile
 include Makefile.config
 
-PWD := $(shell pwd)
-SOURCES:= $(wildcard mlsrc/*.ml)
+SOURCES= servlet.ml
+OCAMLC= ocamljava
+INCDIRS= +cadmium
 
-JAVALIBS=ocamlrun ocamlrun-servlet appengine-api-1.0-sdk-1.3.1
+RESULT= app
+OCAMLBCFLAGS=-java-package $(PKGNAME) $(foreach lib,$(JAVALIBS),-classpath $(PATH_$(lib))) \
+	-I +cadmium -provider fr.x9c.cadmium.primitives.cadmiumservlet.Servlets
+TRASH=*.jo *.jar *.war appengine-web.xml
 
-URI_ocamlrun= http://cadmium.x9c.fr/distrib/ocamlrun.jar
-URI_ocamlrun-servlet= http://cadmium.x9c.fr/distrib/ocamlrun-servlet.jar
-PATH_appengine= $(APPENGINE_SDK)/lib/user/appengine-api-1.0-sdk-$(APPENGINE_VERSION).jar
+.PHONY: all
+all: appengineml.war.ae
+	@ :
 
-OBJDIR:=$(PWD)/obj
-OBJSTAMP=$(OBJDIR)/.stamp
+runsdk:
+	$(APPENGINE_SDK_BIN) appengineml.war.ae
 
-.PHONY: all dist
-all: $(OBJDIR)/native.war.ae
-	@:
+runlive:
+	$(APPENGINE_APPCFG_BIN) update appengineml.war.ae
 
-$(OBJSTAMP):
-	rm -rf $(OBJDIR)
-	mkdir -p $(OBJDIR)
-	@touch $@
+%.war: $(SOURCES:%.ml=%.cmj)
+	ocamljava $(OCAMLBCFLAGS) -o $@ -standalone \
+	  -additional-jar $(PATH_ocamlrun-servlet) -I $(dir $(PATH_ocamlrun)) \
+	  -servlet web.xml cadmiumLibrary.cmja cadmiumServletLibrary.cmja $^
 
-# grab the JAR distfile either from a local path or a remote URL
-$(OBJDIR)/%.jar: $(OBJSTAMP)
-	rm -f $@
-	if [ -z "$(PATH_$*)" ]; then wget -O $@ $(URL_$*); else cp $(PATH_$*) $@; fi
-	@touch $@
-	
-PKGNAME= appengineml
-OPTIONS= -java-package $(PKGNAME) $(JAVALIBS:%=-classpath $(OBJDIR)/%.jar) \
-	 -I +cadmium -provider fr.x9c.cadmium.primitives.cadmiumservlet.Servlets
-
-%.cmj: %.ml $(JAVALIBS:%=$(OBJDIR)/%.jar)
-	ocamljava $(OPTIONS) -c -I +cadmium $<
-
-$(OBJDIR)/appengine-web.xml: appengine-web.xml.in Makefile $(OBJSTAMP)
+appengine-web.xml: appengine-web.xml.in
 	sed -e 's/@APPENGINE_NAME@/$(APPENGINE_NAME)/g' < $< > $@
 
-$(OBJDIR)/%.pre.war: $(SOURCES:%.ml=%.cmj)
-	ocamljava $(OPTIONS) -o $@ -standalone \
-	  -additional-jar $(OBJDIR)/ocamlrun-servlet.jar \
-	  -I $(OBJDIR) -servlet $(PWD)/web.xml cadmiumLibrary.cmja cadmiumServletLibrary.cmja \
-	  $(SOURCES:%.ml=%.cmj)
-
-$(OBJDIR)/%.war.ae: $(OBJDIR)/appengine-web.xml $(OBJDIR)/%.pre.war
-	rm -rf $@
-	mkdir -p $@
-	cd $@ && unzip $<
+%.war.ae: appengine-web.xml %.war
+	rm -rf $@ && mkdir -p $@
+	cd $@ && unzip ../$*.war
 	cp $< $@/WEB-INF/
 
-clean:
-	rm -f mlsrc/*.cmj mlsrc/*.cmja mlsrc/*.cmi
-	rm -rf $(OBJDIR)
-
-.SECONDARY: $(JAVALIBS:%=$(OBJDIR)/%.jar)
+include $(OCAMLMAKEFILE)
