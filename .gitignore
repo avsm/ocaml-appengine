@@ -1,0 +1,9 @@
+obj/
+Makefile.config
+appengine-web.xml
+*.ae/
+*.cmi
+*.cmo
+*.jo
+*.cmj
+.*.swp
