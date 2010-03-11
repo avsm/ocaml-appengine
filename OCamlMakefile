@@ -279,7 +279,7 @@ endif
 export CAMELEON_REPORT_FLAGS
 
 ifndef CAMELEON_ZOGGY
-  CAMELEON_ZOGGY := camlp4o pa_zog.cma pr_o.cmo
+  CAMELEON_ZOGGY := camlp4o pa_zog.cma pr_o.cmj
 endif
 export CAMELEON_ZOGGY
 
@@ -474,20 +474,20 @@ ALLML        := $(filter %.mli %.ml %.mll %.mly %.idl %.oxridl %.rep %.zog %.gla
 
 IMPLO_INTF   := $(ALLML:%.mli=%.mli.__)
 IMPLO_INTF   := $(foreach file, $(IMPLO_INTF), \
-                  $(basename $(file)).cmi $(basename $(file)).cmo)
-IMPLO_INTF   := $(filter-out %.mli.cmo, $(IMPLO_INTF))
+                  $(basename $(file)).cmi $(basename $(file)).cmj)
+IMPLO_INTF   := $(filter-out %.mli.cmj, $(IMPLO_INTF))
 IMPLO_INTF   := $(IMPLO_INTF:%.mli.cmi=%.cmi)
 
-IMPLX_INTF   := $(IMPLO_INTF:.cmo=.cmx)
+IMPLX_INTF   := $(IMPLO_INTF:.cmj=.cmx)
 
 INTF         := $(filter %.cmi, $(IMPLO_INTF))
-IMPL_CMO     := $(filter %.cmo, $(IMPLO_INTF))
-IMPL_CMX     := $(IMPL_CMO:.cmo=.cmx)
-IMPL_ASM     := $(IMPL_CMO:.cmo=.asm)
-IMPL_S       := $(IMPL_CMO:.cmo=.s)
+IMPL_CMO     := $(filter %.cmj, $(IMPLO_INTF))
+IMPL_CMX     := $(IMPL_CMO:.cmj=.cmx)
+IMPL_ASM     := $(IMPL_CMO:.cmj=.asm)
+IMPL_S       := $(IMPL_CMO:.cmj=.s)
 
 OBJ_LINK     := $(OBJ_C_IDL) $(OBJ_C_CXX)
-OBJ_FILES    := $(IMPL_CMO:.cmo=.$(EXT_OBJ)) $(OBJ_LINK)
+OBJ_FILES    := $(IMPL_CMO:.cmj=.$(EXT_OBJ)) $(OBJ_LINK)
 
 EXECS        := $(addsuffix $(EXE), \
                             $(sort $(TOPRESULT) $(BCRESULT) $(NCRESULT)))
@@ -508,10 +508,10 @@ endif
 
 NONEXECS     := $(INTF) $(IMPL_CMO) $(IMPL_CMX) $(IMPL_ASM) $(IMPL_S) \
 		$(OBJ_FILES) $(PRE_TARGETS) $(BCRESULT).cma $(NCRESULT).cmxa \
-		$(NCRESULT).$(EXT_LIB) $(BCRESULT).cmi $(BCRESULT).cmo \
+		$(NCRESULT).$(EXT_LIB) $(BCRESULT).cmi $(BCRESULT).cmj \
 		$(NCRESULT).cmi $(NCRESULT).cmx $(NCRESULT).o \
-		$(RES_CLIB) $(IMPL_CMO:.cmo=.annot) \
-		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmo $(LIB_PACK_NAME).cmx $(LIB_PACK_NAME).o
+		$(RES_CLIB) $(IMPL_CMO:.cmj=.annot) \
+		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmj $(LIB_PACK_NAME).cmx $(LIB_PACK_NAME).o
 
 ifndef STATIC
   NONEXECS += $(DLLSONAME)
@@ -634,7 +634,7 @@ ifndef REAL_OCAMLC
 
   REAL_IMPL := $(IMPL_CMO)
   REAL_IMPL_INTF := $(IMPLO_INTF)
-  IMPL_SUF := .cmo
+  IMPL_SUF := .cmj
 
   DEPFLAGS  :=
   MAKE_DEPS := $(MLDEPS) $(BCDEPIS)
@@ -902,7 +902,7 @@ pncl:	profiling-native-code-library
 
 # packs byte-code objects
 pack-byte-code:			$(PRE_TARGETS)
-			$(QUIET)$(MAKE) -r -f $(OCAMLMAKEFILE) $(BCRESULT).cmo \
+			$(QUIET)$(MAKE) -r -f $(OCAMLMAKEFILE) $(BCRESULT).cmj \
 				REAL_RESULT="$(BCRESULT)" \
 				PACK_LIB=yes make_deps=yes
 pabc:	pack-byte-code
@@ -954,7 +954,7 @@ endif
 				$(ALL_LDFLAGS) $(OBJS_LIBS) -o $@$(EXE) \
 				$(REAL_IMPL)
 
-.SUFFIXES:		.mli .ml .cmi .cmo .cmx .cma .cmxa .$(EXT_OBJ) \
+.SUFFIXES:		.mli .ml .cmi .cmj .cmx .cma .cmxa .$(EXT_OBJ) \
                         .mly .di .d .$(EXT_LIB) .idl %.oxridl .c .m .$(EXT_CXX) .h .so \
                         .rep .zog .glade
 
@@ -993,8 +993,8 @@ $(RESULT).cmxa $(RESULT).$(EXT_LIB):	$(REAL_IMPL_INTF) $(EXTRADEPS) $(RESULTDEPS
 else
 # Packing a bytecode library
 ifdef BYTE_OCAML
-$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmo: $(REAL_IMPL_INTF)
-			$(REAL_OCAMLFIND) $(REAL_OCAMLC) -pack -o $(LIB_PACK_NAME).cmo $(OCAMLLDFLAGS) $(REAL_IMPL)
+$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmj: $(REAL_IMPL_INTF)
+			$(REAL_OCAMLFIND) $(REAL_OCAMLC) -pack -o $(LIB_PACK_NAME).cmj $(OCAMLLDFLAGS) $(REAL_IMPL)
 # Packing into a unit which can be transformed into a library
 # Remember the .ml's must have been compiled with -for-pack $(LIB_PACK_NAME)
 else
@@ -1002,8 +1002,8 @@ $(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmx: $(REAL_IMPL_INTF)
 			$(REAL_OCAMLFIND) $(OCAMLOPT) -pack -o $(LIB_PACK_NAME).cmx  $(OCAMLLDFLAGS) $(REAL_IMPL)
 endif
 
-$(RESULT).cma:		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmo $(MAKEDLL) $(EXTRADEPS) $(RESULTDEPS)
-			$(REAL_OCAMLFIND) $(REAL_OCAMLC) -a $(ALL_LDFLAGS) $(OBJS_LIBS) -o $@ $(LIB_PACK_NAME).cmo
+$(RESULT).cma:		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmj $(MAKEDLL) $(EXTRADEPS) $(RESULTDEPS)
+			$(REAL_OCAMLFIND) $(REAL_OCAMLC) -a $(ALL_LDFLAGS) $(OBJS_LIBS) -o $@ $(LIB_PACK_NAME).cmj
 
 $(RESULT).cmxa $(RESULT).$(EXT_LIB):	$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmx $(EXTRADEPS) $(RESULTDEPS)
 			$(REAL_OCAMLFIND) $(OCAMLOPT) -a $(filter-out -custom, $(ALL_LDFLAGS)) $(OBJS_LIBS) -o $@ $(LIB_PACK_NAME).cmx
@@ -1038,7 +1038,7 @@ endif
 				$(OCAMLFLAGS) $(INCFLAGS) $<; \
 			fi
 
-.ml.cmi .ml.$(EXT_OBJ) .ml.cmx .ml.cmo: $(EXTRADEPS)
+.ml.cmi .ml.$(EXT_OBJ) .ml.cmx .ml.cmj: $(EXTRADEPS)
 			$(QUIET)pp=`sed -n -e '/^#/d' -e 's/(\*pp \([^*]*\) \*)/\1/p;q' $<`; \
 			if [ -z "$$pp" ]; then \
 			  $(ECHO) $(REAL_OCAMLFIND) $(REAL_OCAMLC) $(OCAML_FIND_PACKAGES) \
