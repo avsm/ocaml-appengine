@@ -5,9 +5,14 @@ APPENGINE_NAME ?= foo
 APPENGINE_SDK_BIN ?= /usr/local/bin/dev_appserver.sh
 APPENGINE_LIVE_BIN ?= /usr/local/bin/appcfg.sh -e email@example.com
 
+# Path to java runtime bin
+JAVA ?= java
+JAVAC ?= javac
+
 # Paths to the Cadmium JAR files
 PATH_appengine ?= $(ROOTDIR)/dist/appengine-api-1.0-sdk-1.3.1.jar
 PATH_ocamlrun ?= $(ROOTDIR)/dist/ocamlrun.jar
+PATH_ocamlwrap ?= $(ROOTDIR)/dist/ocamlwrap.jar
 PATH_ocamlrun-servlet ?= $(ROOTDIR)/dist/ocamlrun-servlet.jar
 
 # temporary object directory to build in
