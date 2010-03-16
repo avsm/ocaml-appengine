@@ -2,7 +2,7 @@
 <!DOCTYPE module SYSTEM "dtds/module.dtd">
 
 <module name="Appengine">
- 
+
   <interface java-name="com.google.appengine.api.datastore.DatastoreConfig" ocaml-name="datastore_config" >
     <methods pattern="*(*)" />
   </interface>
@@ -15,6 +15,19 @@
   <interface java-name="com.google.appengine.api.datastore.Transaction" ocaml-name="transaction" >
     <methods pattern="*(*)" />
   </interface>
+
+  <class java-name="java.lang.Integer" ocaml-name="lang_integer" >
+    <constructor signature="(int)" />
+  </class>
+  <class java-name="java.lang.Long" ocaml-name="lang_long" >
+    <constructor signature="(long)" />
+  </class>
+  <class java-name="java.lang.String" ocaml-name="lang_string" >
+    <constructor signature="(java.lang.String)" />
+  </class>
+  <class java-name="java.lang.Boolean" ocaml-name="lang_bool" >
+    <constructor signature="(boolean)" />
+  </class>
 
   <class java-name="com.google.appengine.api.datastore.Blob" ocaml-name="blob" >
     <constructor signature="(byte[])" />

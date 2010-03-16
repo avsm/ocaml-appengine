@@ -2,10 +2,10 @@ ROOTDIR=$(shell pwd)
 OCAMLMAKEFILE=OCamlMakefile
 include Makefile.config
 
-SOURCES= appengine.ml servlet.ml
+SOURCES= appengine.ml save.ml servlet.ml
 OCAMLC= ocamljava
-INCDIRS= +cadmium
-
+INCDIRS= +cadmium +site-lib/dyntype
+ANNOTATE= yes
 RESULT= app
 OCAMLBCFLAGS=-java-package $(PKGNAME) $(foreach lib,$(JAVALIBS),-classpath $(PATH_$(lib))) -classpath . \
 	-I +cadmium -provider fr.x9c.cadmium.primitives.cadmiumservlet.Servlets -provider pack/Appengine
@@ -36,8 +36,10 @@ appengine.ml appengine.mli pack/Appengine.java pack/Appengine.class appengine.c:
 	  -additional-class pack/Appengine.class \
 	  -additional-jar $(PATH_ocamlrun-servlet) \
 	  -additional-jar $(PATH_appengine) \
-	  -I $(dir $(PATH_ocamlrun)) \
-	  -servlet web.xml cadmiumLibrary.cmja cadmiumServletLibrary.cmja $(SOURCES:%.ml=%.cmj)
+	  -I $(dir $(PATH_ocamlrun)) -I +site-lib/dyntype \
+	  -servlet web.xml cadmiumLibrary.cmja cadmiumServletLibrary.cmja \
+	  value.cmj type.cmj \
+	  $(SOURCES:%.ml=%.cmj)
 
 appengine-web.xml: appengine-web.xml.in
 	sed -e 's/@APPENGINE_NAME@/$(APPENGINE_NAME)/g' < $< > $@
@@ -46,7 +48,7 @@ appengine-web.xml: appengine-web.xml.in
 	rm -rf $@ && mkdir -p $@
 	cd $@ && unzip ../$*.war
 	cp $< $@/WEB-INF/
-	mv $@/pack $@/WEB-INF/classes/
+	mv $@/pack/* $@/WEB-INF/classes/pack/
 	find $@
 
 include $(OCAMLMAKEFILE)
