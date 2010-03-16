@@ -28,6 +28,13 @@
   <class java-name="java.lang.Boolean" ocaml-name="lang_bool" >
     <constructor signature="(boolean)" />
   </class>
+  <class java-name="java.lang.Float" ocaml-name="lang_float" >
+    <constructor signature="(float)" />
+  </class>
+  <class java-name="java.util.Vector" ocaml-name="lang_vector" >
+    <constructor signature="(int)" />
+    <methods pattern="addElement(*)" />
+  </class>
 
   <class java-name="com.google.appengine.api.datastore.Blob" ocaml-name="blob" >
     <constructor signature="(byte[])" />

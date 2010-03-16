@@ -4,7 +4,7 @@ include Makefile.config
 
 SOURCES= appengine.ml save.ml servlet.ml
 OCAMLC= ocamljava
-INCDIRS= +cadmium +site-lib/dyntype
+INCDIRS= +cadmium +site-lib/dyntype +site-lib/shelf
 ANNOTATE= yes
 RESULT= app
 OCAMLBCFLAGS=-java-package $(PKGNAME) $(foreach lib,$(JAVALIBS),-classpath $(PATH_$(lib))) -classpath . \
@@ -36,9 +36,9 @@ appengine.ml appengine.mli pack/Appengine.java pack/Appengine.class appengine.c:
 	  -additional-class pack/Appengine.class \
 	  -additional-jar $(PATH_ocamlrun-servlet) \
 	  -additional-jar $(PATH_appengine) \
-	  -I $(dir $(PATH_ocamlrun)) -I +site-lib/dyntype \
+	  -I $(dir $(PATH_ocamlrun)) -I +site-lib/dyntype -I +site-lib/shelf \
 	  -servlet web.xml cadmiumLibrary.cmja cadmiumServletLibrary.cmja \
-	  value.cmj type.cmj \
+	  value.cmj type.cmj json.cmj \
 	  $(SOURCES:%.ml=%.cmj)
 
 appengine-web.xml: appengine-web.xml.in
