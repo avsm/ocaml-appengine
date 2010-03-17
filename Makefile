@@ -2,7 +2,7 @@ ROOTDIR=$(shell pwd)
 OCAMLMAKEFILE=OCamlMakefile
 include Makefile.config
 
-SOURCES= appengine.ml save.ml servlet.ml
+SOURCES= appengine.ml bridge.ml servlet.ml
 OCAMLC= ocamljava
 INCDIRS= +cadmium +site-lib/dyntype +site-lib/shelf
 ANNOTATE= yes

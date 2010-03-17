@@ -5,8 +5,9 @@ let handle_get srv req resp =
   let out = Response.get_output_stream resp in 
   match Request.get_path_info req with 
   | "/Service1" ->
-     output_string out (Save.save ())
-  | "/Service2" -> output_string out "service2"
+     output_string out (Bridge.save ())
+  | "/Service2" ->
+     output_string out (Bridge.get ())
   | url ->
       output_string out "<html><head><title>Hello OCaml World!</title></head><body>"; 
       output_string out (Printf.sprintf "<b>Looks like you asked for: %s</b>" url); 
