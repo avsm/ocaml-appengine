@@ -54,7 +54,8 @@ let to_entity x =
 let save () =
   let dsf = new datastore_service_factory `Null in
   let ds = dsf#getDatastoreService in
-  let x1 = {foo="hello world"; bar=(Random.int 1000); barl=[ 10L;11L;12L ]; baru=[();()]; assoc=[ "k1","v1"; "k2","v2"] } in
+  let x1 = {foo="hello world"; bar=(Random.int 1000); barl=[ 10L;11L;12L ]; 
+    baru=[();()]; assoc=[ "k1","v1"; "k2","v2"] } in
   let ent = to_entity x1 in
   let _ = ds#put2 ent in
   ent#toString
@@ -66,31 +67,47 @@ let foldIter fn i o =
   done;
   !r
 
-let to_value (ent:entity) =
+let foldIter2 fn i o l =
+  let r = ref i in
+  List.iter (fun l' -> 
+    if o#hasNext then
+      r := fn !r o#next l'
+    else
+      Printf.printf "foldIter2 fail\n%!"
+  ) l;
+  !r
+
+let rec to_value prop ty =
+  let cl = prop#getClass#getName in
+  match ty, cl with
+    | Type.Unit, _ -> Value.Unit
+    | Type.Int _, _ -> Value.Int (of_jlong prop)
+    | Type.Bool, _ -> Value.Bool (of_jbool prop)
+    | Type.Char, _ | Type.String, _ -> Value.String (of_jstring prop)
+    | Type.Enum ty', "java.util.ArrayList" ->
+        let l = new util_arraylist (`Cd'initObj prop) in
+        Value.Enum (foldIter (fun a v -> to_value v ty' :: a) [] l#iterator)
+    | Type.Tuple tyl, "java.util.ArrayList" ->
+        let l = new util_arraylist (`Cd'initObj prop) in
+        Value.Tuple (foldIter2 (fun a v ty' -> (to_value v ty') :: a) [] l#iterator tyl)
+    | _, "java.lang.String" -> Json.of_string (of_jstring prop)
+    | ty,cl ->
+        Printf.printf "Unknown ty/cl: %s %s, returning null\n%!" (Type.to_string ty) cl; Value.Unit
+ 
+let entity_to_value ty (ent:entity) =
+  let ty_fields = match ty with
+   | Type.Ext (_, Type.Dict ts) -> List.map (fun (k,_,v) -> (k,v)) ts
+   | _ -> failwith "only works with Dicts at the mo" in
   let ps = foldIter (fun a o ->
       let key = (new lang_string (`Cd'initObj o))#toString in
       let prop = ent#getProperty key in
-      let v = match prop#getClass#getName with 
-        | "java.lang.String" -> Value.String (of_jstring prop)
-        | "java.lang.Long" -> Value.Int (of_jlong prop)
-        | "java.util.ArrayList" -> 
-            let l = new util_arraylist (`Cd'initObj prop) in
-            Value.Enum (foldIter (fun a v ->
-              let r = match v#getClass#getName with
-              | "java.lang.String" -> Value.String (of_jstring v)
-              | "java.lang.Long" -> Value.Int (of_jlong v)
-              | "java.lang.Boolean" -> Value.Bool (of_jbool v)
-              | unknown -> (print_endline unknown; raise Not_found)
-              in r :: a
-              ) [] l#iterator)
-        | unknown -> (print_endline ("unknown class: " ^ unknown); raise Not_found) in
+      let v = to_value prop (List.assoc key ty_fields) in
       (key,v) :: a
     ) [] ent#getProperties#keySet#iterator in
   Value.Dict ps
    
 let get () =
   let dsf = new datastore_service_factory `Null in
-  let entity_class = new CadmiumObj.jClass (`For_name "com.google.appengine.api.datastore.Entity") in
   let ds = dsf#getDatastoreService in
   let q = new query (`String "x") in
   let pq = ds#prepare2 q in
@@ -102,7 +119,7 @@ let get () =
     let keys_string = foldIter (fun a o ->
       let k = (new lang_string (`Cd'initObj o))#toString in
       let v = ent#getProperty k in
-      let v' = to_value ent in
+      let v' = entity_to_value type_of_x ent in
       let kv = Printf.sprintf "%s=%s (%s) (json=%s)\n" k (v#toString) (v#getClass#getName) (Json.to_string v') in
       kv :: a
     ) [] keys in
