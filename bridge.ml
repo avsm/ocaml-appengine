@@ -57,7 +57,7 @@ let save () =
   let x1 = {foo="hello world"; bar=(Random.int 1000); barl=[ 10L;11L;12L ]; 
     baru=[();()]; assoc=[ "k1","v1"; "k2","v2"] } in
   let ent = to_entity x1 in
-  let _ = ds#put2 ent in
+  let _ = ds#put ent in
   ent#toString
 
 let foldIter fn i o =
@@ -110,8 +110,8 @@ let get () =
   let dsf = new datastore_service_factory `Null in
   let ds = dsf#getDatastoreService in
   let q = new query (`String "x") in
-  let pq = ds#prepare2 q in
-  let iter = pq#asIterator2 in
+  let pq = ds#prepare q in
+  let iter = pq#asIterator in
   let r = foldIter (fun a o ->
     let ent = new entity (`Cd'initObj o) in
     let props_map = ent#getProperties in
