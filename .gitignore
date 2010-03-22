@@ -7,3 +7,4 @@ appengine-web.xml
 *.jo
 *.cmj
 .*.swp
+*.annot

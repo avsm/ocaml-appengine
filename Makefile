@@ -2,20 +2,20 @@ ROOTDIR=$(shell pwd)
 OCAMLMAKEFILE=OCamlMakefile
 include Makefile.config
 
-SOURCES= appengine.ml bridge.ml servlet.ml
+SOURCES= bridge.ml servlet.ml
 OCAMLC= ocamljava
-INCDIRS= +cadmium +site-lib/dyntype +site-lib/shelf
+INCDIRS= +cadmium +site-lib/dyntype +site-lib/shelf +site-lib/orm
 ANNOTATE= yes
 RESULT= app
-OCAMLBCFLAGS=-java-package $(PKGNAME) $(foreach lib,$(JAVALIBS),-classpath $(PATH_$(lib))) -classpath . \
-	-I +cadmium -provider fr.x9c.cadmium.primitives.cadmiumservlet.Servlets -provider pack/Appengine
-TRASH=*.jo *.jar *.war appengine-web.xml appengine.ml appengine.mli pack/Appengine.java pack/Appengine.class appengine.c
+OCAMLBCFLAGS=-java-package $(PKGNAME) $(foreach lib,$(JAVALIBS),-classpath $(PATH_$(lib)))  \
+	-I +cadmium -provider fr.x9c.cadmium.primitives.cadmiumservlet.Servlets
+TRASH=*.jo *.jar *.war appengine-web.xml *.cmj
 
 .PHONY: all depend
 all: depend appengineml.war.ae 
 	@ :
 
-depend: appengine.ml
+depend: 
 	@ :
 
 runsdk:
@@ -24,21 +24,14 @@ runsdk:
 runlive:
 	$(APPENGINE_LIVE_BIN) update appengineml.war.ae
 
-appengine.ml appengine.mli pack/Appengine.java pack/Appengine.class appengine.c: appengine.nickel
-	mkdir -p pack
-	env CLASSPATH=$(PATH_ocamlwrap):$(PATH_appengine) java fr.x9c.nickel.Main --java-dir=pack --java-package=pack $<
-	$(JAVAC) -target 1.6 -cp $(PATH_ocamlrun):$(PATH_appengine) pack/Appengine.java
-	$(OCAMLC) -i -I +cadmium appengine.ml > appengine.mli
-	$(OCAMLC) -c -I +cadmium appengine.mli
-
 %.war: $(SOURCES:%.ml=%.cmj)
 	ocamljava $(OCAMLBCFLAGS) -o $@ -standalone \
-	  -additional-class pack/Appengine.class \
 	  -additional-jar $(PATH_ocamlrun-servlet) \
 	  -additional-jar $(PATH_appengine) \
-	  -I $(dir $(PATH_ocamlrun)) -I +site-lib/dyntype -I +site-lib/shelf \
+	  -additional-jar $(shell ocamlfind printconf path)/orm/orm_ae.jar \
+	  -I $(dir $(PATH_ocamlrun)) -I +site-lib/dyntype -I +site-lib/shelf -I +site-lib/orm \
 	  -servlet web.xml cadmiumLibrary.cmja cadmiumServletLibrary.cmja \
-	  value.cmj type.cmj json.cmj \
+	  value.cmj type.cmj json.cmj orm.cmj \
 	  $(SOURCES:%.ml=%.cmj)
 
 appengine-web.xml: appengine-web.xml.in
@@ -48,7 +41,6 @@ appengine-web.xml: appengine-web.xml.in
 	rm -rf $@ && mkdir -p $@
 	cd $@ && unzip ../$*.war
 	cp $< $@/WEB-INF/
-	mv $@/pack/* $@/WEB-INF/classes/pack/
 	find $@
 
 include $(OCAMLMAKEFILE)

@@ -1,5 +1,4 @@
 open CadmiumServlet
-open Appengine
 
 let handle_get srv req resp = 
   let out = Response.get_output_stream resp in 
